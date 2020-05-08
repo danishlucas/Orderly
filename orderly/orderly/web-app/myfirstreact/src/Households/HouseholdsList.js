@@ -5,7 +5,7 @@ class HouseholdsList extends Component {
     handleClick = (e) => {
         document.querySelector('.house-selected').classList.remove('house-selected');
         e.target.classList.add('house-selected');
-    }
+    };
 
     render() {
         return (
