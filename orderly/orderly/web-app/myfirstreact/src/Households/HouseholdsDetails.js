@@ -1,11 +1,11 @@
 import React, {Component} from 'react';
 
-class HouseholdDetails extends Component {
+class HouseholdsDetails extends Component {
 
     handleClick = (e) => {
         document.querySelector('.nav-selected').classList.remove('nav-selected');
         e.target.classList.add('nav-selected');
-    }
+    };
 
     render() {
         return (
@@ -21,4 +21,4 @@ class HouseholdDetails extends Component {
     }
 }
 
-export default HouseholdDetails;
+export default HouseholdsDetails;
