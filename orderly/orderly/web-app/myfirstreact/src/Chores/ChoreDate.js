@@ -1,5 +1,8 @@
 import React, {Component} from 'react';
 
+/*
+    Displays the current date in plain english
+ */
 class ChoreDate extends Component {
     render() {
         return (
