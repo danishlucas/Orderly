@@ -5,12 +5,33 @@ import './Chores.css';
 import ChoreDate from "./ChoreDate";
 import DateForm from "./DateForm";
 import DayOfWeekPicker from "./DayOfWeekPicker";
+import ChoreTypeButtons from "./ChoreTypeButtons";
+import ChoreViewButtons from "./ChoreViewButtons";
 
+/*Used to specify what type view chores are displayed in*/
+const ChoreView = {
+    CALENDAR: 'calendar',
+    LIST: 'list'
+};
+
+/*Used to specify what type of chore this page is displaying*/
+const ChoreType = {
+    UPCOMING: 'upcoming',
+    COMPLETED: 'completed',
+    OVERDUE: 'overdue'
+};
+
+/*
+    Displays all of the chores for a user on a given day.
+ */
 class Chores extends Component {
+
     constructor(props) {
         super(props);
         let initDate = new Date();
         this.state = {
+            choreView: ChoreView.CALENDAR,
+            choreType: ChoreType.UPCOMING,
             dow: initDate.getDay(),
             day: initDate.getDate(),
             month: initDate.getMonth(),
@@ -18,14 +39,18 @@ class Chores extends Component {
             monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September",
                 "October", "November", "December"]
         };
-
+        
         this.setDay = this.setDay.bind(this);
         this.setMonth = this.setMonth.bind(this);
         this.setYear = this.setYear.bind(this);
         this.moveDay = this.moveDay.bind(this);
         this.moveWeek = this.moveWeek.bind(this);
         this.moveDate = this.moveDate.bind(this);
+        this.setChoreType = this.setChoreType.bind(this);
+        this.setChoreView = this.setChoreView.bind(this);
     }
+
+    /*Functions for setting the current date*/
 
     setDay(day) {
         let newDate = new Date(this.state.year, this.state.month, this.state.day);
@@ -62,6 +87,8 @@ class Chores extends Component {
         );
     }
 
+    /*Functions for moving the date forward/backwards a set number of days/weeks/months etc..*/
+
     moveDay(numDays) {
         this.moveDate(numDays, 1);
     }
@@ -83,6 +110,24 @@ class Chores extends Component {
         );
     }
 
+    /*Functions for setting the type of chores to be displayed, and the view in which to display them*/
+
+    setChoreType(type) {
+        this.setState(
+            {
+                choreType: type
+            }
+        );
+    }
+
+    setChoreView(view) {
+        this.setState(
+            {
+                choreView: view
+            }
+        );
+    }
+
     render() {
         return (
             <div id="chores">
@@ -90,6 +135,7 @@ class Chores extends Component {
                     <ChoreDate day={this.state.day} month={this.state.monthNames[this.state.month]} year={this.state.year}/>
                     <DateForm label="Month" changeDate={(m) => this.setMonth(m-1)} start={this.state.month + 1} max="12" min="1"/>
                     <DateForm label="Year" changeDate={(y) => this.setYear(y)} start={this.state.year} max="10000" min="1"/>
+                    <ChoreTypeButtons initType={this.state.choreType} setChoreType={this.setChoreType}/>
                 </div>
 
                 <div id="middle-column">
@@ -97,6 +143,7 @@ class Chores extends Component {
                 </div>
 
                 <div id="right-column">
+                    <ChoreViewButtons initView={this.state.choreView} setChoreView={this.setChoreView}/>
                 </div>
             </div>
         );

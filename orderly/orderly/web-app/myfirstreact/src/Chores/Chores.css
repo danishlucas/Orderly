@@ -17,13 +17,35 @@
 
 #chore-date {
     text-align: left;
-    font-size: 32pt;
+    font-size: 28pt;
     margin-top: 10vh;
 }
 
 #date-spinner {
     width: 20%;
     margin-left: 5%;
+}
+
+#chore-type {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20%;
+}
+
+.chore-type-btn {
+    padding: 5%;
+    margin-bottom: 8%;
+    border: 2px solid grey;
+    background-color: transparent;
+    border-radius: 10px;
+}
+
+.chore-type-btn:focus {
+    outline: none;
+}
+
+.chore-type-btn-selected {
+    background-color: lightgrey;
 }
 
 /*********************************************************************************************************************/
@@ -33,11 +55,8 @@
     display: flex;
     flex-direction: column;
     flex-basis: 56%;
-
     padding: 0;
-
 }
-
 
 #dow-picker {
     display: flex;
@@ -48,7 +67,6 @@
     margin-left: auto;
     margin-right: auto;
     margin-top: 0px;
-
 }
 
 #dow-picker li {
@@ -82,7 +100,6 @@
 }
 
 .dow-selected {
-    outline: none;
     background-color: lightgrey;
 }
 
@@ -95,4 +112,41 @@
     flex-direction: column;
     flex-basis: 22%;
     background-color: aliceblue;
+}
+
+#chore-view {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    padding-top: 1%;
+}
+
+.chore-view-button {
+    border: none;
+    background-color: transparent;
+    flex-basis: 20%;
+    padding-top: 1%;
+    padding-bottom: 1%;
+    margin-right: 5%;
+    margin-left: 5%;
+    border-radius: 10%;
+}
+
+.chore-view-button:hover {
+    background-color: lightgrey;
+}
+.chore-view-button:focus {
+    outline: none;
+}
+
+.chore-view-button-selected {
+    background-color: lightgrey;
+}
+
+#list-icon {
+    margin-top: 10%;
+}
+
+#calendar-icon {
+
 }

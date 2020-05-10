@@ -3,6 +3,9 @@ import React, {Component} from 'react';
 import { FaChevronLeft } from 'react-icons/fa';
 import { FaChevronRight } from 'react-icons/fa';
 
+/*
+    Allows the user to select between different days of the week, also shows week day of the week is currently selected.
+ */
 class DayOfWeekPicker extends Component {
     constructor(props) {
         super(props);

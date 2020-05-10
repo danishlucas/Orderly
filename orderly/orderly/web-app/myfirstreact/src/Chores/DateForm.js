@@ -1,14 +1,16 @@
 import React, {Component} from 'react';
 
+/*
+    A spinner which allows the user to change the month/year of the current date.
+ */
 class DateForm extends Component {
     constructor(props) {
         super(props);
         this.handleChange = this.handleChange.bind(this);
     }
 
-    handleChange(event) {
-        this.setState({date: event.target.value});
-        this.props.changeDate(event.target.value)
+    handleChange(e) {
+        this.props.changeDate(e.target.value)
     }
 
     render() {
