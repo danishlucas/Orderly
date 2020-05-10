@@ -1,0 +1,98 @@
+#chores {
+    display: flex;
+    flex-direction: row;
+
+}
+
+/*********************************************************************************************************************/
+/*                                                  left column                                                      */
+/*********************************************************************************************************************/
+
+#left-column {
+    display: flex;
+    flex-direction: column;
+    flex-basis: 22%;
+    background-color: aliceblue;
+}
+
+#chore-date {
+    text-align: left;
+    font-size: 32pt;
+    margin-top: 10vh;
+}
+
+#date-spinner {
+    width: 20%;
+    margin-left: 5%;
+}
+
+/*********************************************************************************************************************/
+/*                                                  middle column                                                    */
+/*********************************************************************************************************************/
+#middle-column {
+    display: flex;
+    flex-direction: column;
+    flex-basis: 56%;
+
+    padding: 0;
+
+}
+
+
+#dow-picker {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 80%;
+    padding: 0;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0px;
+
+}
+
+#dow-picker li {
+    border-radius: 10%;
+    background-color: transparent;
+}
+
+#dow-picker li:hover {
+    background-color: lightgrey;
+}
+
+.dow-chevron {
+    padding-top: 10%;
+}
+
+.dow-button {
+    font-size: 36pt;
+    height: 100%;
+    width: 100%;
+    border: none;
+    border-radius: 10%;
+    background-color: transparent;
+}
+
+.dow-button:hover {
+    background-color: lightgrey;
+}
+
+.dow-button:focus {
+    outline: none;
+}
+
+.dow-selected {
+    outline: none;
+    background-color: lightgrey;
+}
+
+/*********************************************************************************************************************/
+/*                                                  right column                                                     */
+/*********************************************************************************************************************/
+
+#right-column {
+    display: flex;
+    flex-direction: column;
+    flex-basis: 22%;
+    background-color: aliceblue;
+}
