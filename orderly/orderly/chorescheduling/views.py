@@ -1,9 +1,9 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from .models import Household, Schedule, Week, Chore, ChoreInfo, Person
 
 # bugs 
-# - won't allow you to delete person if they are assigned to chore
+# - won't allow you to delete person if they are assigned to chore, won't allow to delete household
 # - integrate people fields into user
 # - works if num_chores >= num_people, but consider case where num_people > num_chores
 # - varying chore frequency
@@ -13,11 +13,17 @@ from .models import Household, Schedule, Week, Chore, ChoreInfo, Person
 # postconditions: user created
 # use case: signing up for an account
 def create_user(request):
-  PERSON_NAME = "Emery"
+  # PERSON_NAME = request.GET.get('name', None)
+  PERSON_NAME = "Earnie"
   
   person = Person(name=PERSON_NAME)
   person.save()
   user_output = "User " + str(person.name) + " created"
+
+  # data = {
+  #   'user_created': User.objects.filter(name=PERSON_NAME).exists()
+  # }
+  # return JsonResponse(data)
   return HttpResponse(user_output, content_type="text/plain")
 
 # parameters: -
@@ -28,6 +34,11 @@ def create_household(request):
   household = Household()
   household.save()
   household_output = "Household " + str(household.hid) + " created"
+
+  # data = {
+  #   'household_created': Household.objects.filter(hid=household.hid).exists()
+  # }
+  # return JsonResponse(data)
   return HttpResponse(household_output, content_type="text/plain")
 
 # parameters: household ID, list of users
@@ -35,16 +46,27 @@ def create_household(request):
 # postconditions: user added to househould
 # use case: initial set-up OR adding someone to household through options
 def add_household_users(request):
-  HOUSEHOLD_ID = 2
-  PERSON_NAMES = ["Emery", "Dai"]
+  # HOUSEHOLD_ID = request.GET.get('hid', None)
+  # PERSON_NAMES = request.GET.get('names', None)
+  HOUSEHOLD_ID = 6
+  PERSON_NAMES = ["Dorothy", "Earnie"]
 
   people_output = ""
+  linked = True
   for person_name in PERSON_NAMES:
     person = Person.objects.get(name=person_name)
     person.linked_household_id = HOUSEHOLD_ID
     person.save()
     people_output += person.name + '\n'
+
+    if Person.objects.get(name=person_name).linked_household_id != HOUSEHOLD_ID:
+      linked = False
   people_output += '\n' + "Users added to household " + str(HOUSEHOLD_ID)
+
+  # data = {
+  #   'all_users_linked': linked
+  # }
+  # return JsonResponse(data)
   return HttpResponse(people_output, content_type="text/plain")
 
 # parameters: household ID, list of chores/descriptions
@@ -52,16 +74,28 @@ def add_household_users(request):
 # postconditions: choreinfos created and linked to that househould
 # use case: initial set-up OR when resetting chore schedule through options
 def add_household_chores(request):
-  HOUSEHOLD_ID = 2
+  # HOUSEHOLD_ID = request.GET.get('hid', None)
+  # CHORE_NAMES = request.GET.get('names', None)
+  # CHORE_DESCRIPTIONS = request.GET.get('descriptions', None)
+  HOUSEHOLD_ID = 6
   CHORE_NAMES = ["chore 4", "chore 5", "chore 6"]
   CHORE_DESCRIPTIONS = ["description 4", "decription 5", "description 6"]
   
   chore_output = ""
+  linked = True
   for x in range(0, len(CHORE_NAMES)): 
     chore_info = ChoreInfo(name=CHORE_NAMES[x], description=CHORE_DESCRIPTIONS[x], linked_household_id=HOUSEHOLD_ID)
     chore_info.save()
     chore_output += chore_info.name + " - " + chore_info.description + " created" + '\n'
+    
+    if ChoreInfo.objects.get(name=CHORE_NAMES[x]).linked_household_id != HOUSEHOLD_ID:
+      linked = False
   chore_output += '\n' + "Chores linked with household " + str(HOUSEHOLD_ID)
+  
+  # data = {
+  #   'all_users_linked': linked
+  # }
+  # return JsonResponse(data)
   return HttpResponse(chore_output, content_type="text/plain")
 
 # parameters: household id, number of weeks for schedule
@@ -69,8 +103,8 @@ def add_household_chores(request):
 # postcondition: within schedule, weeks generated .... within weeks, list of chores assigned to people
 # use case: initial set-up (after defining choreinfos/people) OR when resetting chore schedule through options
 def generate_schedule(request):
-  HOUSEHOLD_ID = 2
-  SCHEDULE_NUM_WEEKS = 5
+  HOUSEHOLD_ID = 6
+  SCHEDULE_NUM_WEEKS = 6
 
   household = Household.objects.get(hid=HOUSEHOLD_ID)
 
