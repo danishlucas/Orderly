@@ -15,7 +15,7 @@ class Home extends React.Component{
     render() {
         return (
             <div className="App">
-                <NavBar setPage={this.setPage}></NavBar>
+                <NavBar setPage={this.setPage}/>
                 {this.state.page}
             </div>
         );
