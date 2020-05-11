@@ -1,24 +1,40 @@
 import React from 'react';
 import './App.css';
-import NavBar from "./NavBar";
-import Households from "../Households/Households";
+import LoginPage from '../Login/LoginPage';
+import {
+    BrowserRouter as Router,
+    Switch,
+    Route,
+    Link
+} from "react-router-dom";
+import Home from './Home';
 
 class App extends React.Component{
     constructor(props) {
         super(props);
         this.setPage = this.setPage.bind(this);
         this.state = {
-            page: <Households/>
+            page: <LoginPage setPage={this.setPage}/>
         }
     }
 
     render() {
         return (
-            <div className="App">
-                <h1 id="heading">Orderly</h1>
-                <NavBar setPage={this.setPage}>Navigation bar</NavBar>
-                {this.state.page}
-            </div>
+            <Router>
+                <div className="App">
+                    <h1 id="heading">Orderly</h1>
+                    {this.state.page}
+
+                    <Switch>
+                        <Route path="/home">
+                            <Home />
+                        </Route>
+                        <Route path="/">
+                            <LoginPage />
+                        </Route>
+                    </Switch>
+                </div>
+            </Router>
         );
     }
 

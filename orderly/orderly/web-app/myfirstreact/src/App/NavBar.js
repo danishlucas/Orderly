@@ -5,9 +5,6 @@ import Notifications from "../Notifications/Notifications";
 import Chores from "../Chores/Chores";
 
 class NavBar extends Component {
-    constructor(props) {
-        super(props);
-    }
 
     handleClick = (e, page) => {
         document.querySelector('.nav-selected').classList.remove('nav-selected');
