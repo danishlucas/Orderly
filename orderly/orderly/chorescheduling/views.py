@@ -4,44 +4,72 @@ from .models import Household, Schedule, Week, Chore, ChoreInfo, Person
 
 # bugs 
 # - won't allow you to delete person if they are assigned to chore
-# - people/chores not currently linked to a household
+# - integrate people fields into user
+# - works if num_chores >= num_people, but consider case where num_people > num_chores
+# - varying chore frequency
 
-# preconditions: none 
+# parameters: person name
+# preconditions: - 
+# postconditions: user created
+# use case: signing up for an account
+def create_user(request):
+  PERSON_NAME = "Emery"
+  
+  person = Person(name=PERSON_NAME)
+  person.save()
+  user_output = "User " + str(person.name) + " created"
+  return HttpResponse(user_output, content_type="text/plain")
+
+# parameters: -
+# preconditions: - 
 # postconditions: household created
 # use case: after leader creates account, would have the option to create a household
 def create_household(request):
   household = Household()
   household.save()
   household_output = "Household " + str(household.hid) + " created"
-  return HttpResponse(household_output)
+  return HttpResponse(household_output, content_type="text/plain")
 
-# preconditions: none 
-# postconditions: people created ... should find existing people and link to household CHANGE
-# use case: after leader creates account, 
-# def create_people(request):
-#   PERSON_NAMES = ["person 1", "person 2", "person 3"] # PARAMETER TO PASS IN
-#   for person_name in PERSON_NAMES:
-#     person = Person(name=person_name) # NEED TO LINK TO HOUSEHOLD AS WELL
-#     person.save()
-#   return HttpResponse()
+# parameters: household ID, list of users
+# preconditions: household created, user to be added to household created
+# postconditions: user added to househould
+# use case: initial set-up OR adding someone to household through options
+def add_household_users(request):
+  HOUSEHOLD_ID = 2
+  PERSON_NAMES = ["Emery", "Dai"]
 
-# preconditions: none 
-# postconditions: household created
-# use case: after leader creates account, 
-# def create_chores(request):
-#   CHORE_NAMES = ["chore 1", "chore 2", "chore 3"] # PARAMETER TO PASS IN
-#   CHORE_DESCRIPTIONS = ["description 1", "decription 2", "description 3"] # PARAMETER TO PASS IN
-#   for x in range(0, len(CHORE_NAMES)): 
-#     chore_info = ChoreInfo(name=CHORE_NAMES[x], description=CHORE_DESCRIPTIONS[x])
-#     chore_info.save()
-#   return HttpResponse()
+  people_output = ""
+  for person_name in PERSON_NAMES:
+    person = Person.objects.get(name=person_name)
+    person.linked_household_id = HOUSEHOLD_ID
+    person.save()
+    people_output += person.name + '\n'
+  people_output += '\n' + "Users added to household " + str(HOUSEHOLD_ID)
+  return HttpResponse(people_output, content_type="text/plain")
+
+# parameters: household ID, list of chores/descriptions
+# preconditions: household created
+# postconditions: choreinfos created and linked to that househould
+# use case: initial set-up OR when resetting chore schedule through options
+def add_household_chores(request):
+  HOUSEHOLD_ID = 2
+  CHORE_NAMES = ["chore 4", "chore 5", "chore 6"]
+  CHORE_DESCRIPTIONS = ["description 4", "decription 5", "description 6"]
+  
+  chore_output = ""
+  for x in range(0, len(CHORE_NAMES)): 
+    chore_info = ChoreInfo(name=CHORE_NAMES[x], description=CHORE_DESCRIPTIONS[x], linked_household_id=HOUSEHOLD_ID)
+    chore_info.save()
+    chore_output += chore_info.name + " - " + chore_info.description + " created" + '\n'
+  chore_output += '\n' + "Chores linked with household " + str(HOUSEHOLD_ID)
+  return HttpResponse(chore_output, content_type="text/plain")
 
 # parameters: household id, number of weeks for schedule
 # preconditions: household created and choreinfos/people been defined 
 # postcondition: within schedule, weeks generated .... within weeks, list of chores assigned to people
 # use case: initial set-up (after defining choreinfos/people) OR when resetting chore schedule through options
-def create_schedule(request):
-  HOUSEHOLD_ID = 3
+def generate_schedule(request):
+  HOUSEHOLD_ID = 2
   SCHEDULE_NUM_WEEKS = 5
 
   household = Household.objects.get(hid=HOUSEHOLD_ID)
@@ -54,8 +82,8 @@ def create_schedule(request):
   schedule = Schedule(num_weeks=SCHEDULE_NUM_WEEKS, linked_household_id=household.hid)
   schedule.save()
 
-  persons = Person.objects.all() # OBTAIN FROM HOUSEHOLD
-  chore_infos = ChoreInfo.objects.all() # OBTAIN FROM HOUSEHOLD
+  persons = Person.objects.filter(linked_household__hid=HOUSEHOLD_ID)
+  chore_infos = ChoreInfo.objects.filter(linked_household__hid=HOUSEHOLD_ID)
 
   week_list = []
   for x in range(0, schedule.num_weeks):
@@ -64,7 +92,6 @@ def create_schedule(request):
     week_list.append(week)
 
   # creating chores for each week 
-  # SEEMS TO WORK IF NUM_CHORES >= NUM_PEOPLE, BUT RETHINK CASE WHERE NUM_PEOPLE > NUM_CHORES OR CHORES HAVE VARYING FREQUENCY
   first_person = 0
   num_people = len(persons)
   for week in week_list:
