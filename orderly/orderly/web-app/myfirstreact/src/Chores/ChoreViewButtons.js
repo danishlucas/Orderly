@@ -5,7 +5,7 @@ import { FaBars } from 'react-icons/fa';
 
 class ChoreViewButtons extends Component {
     componentDidMount() {
-        let selectedView = '#' + "chore-view-" + this.props.initView;
+        let selectedView = "#chore-view-" + this.props.initView;
         document.querySelector(selectedView).classList.add('chore-view-button-selected');
     }
 
