@@ -48,7 +48,7 @@ class ChoreInfo(models.Model):
 class Person(models.Model): # see if we can add these fields to user instead
   pid = models.AutoField(primary_key=True)
   name = models.CharField(max_length=20)
-  linked_household = models.ForeignKey('Household', on_delete=models.CASCADE)
+  linked_household = models.ForeignKey('Household', on_delete=models.CASCADE, blank=True, null=True)
   # email id
   # password
   # status
