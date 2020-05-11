@@ -3,6 +3,7 @@ from . import views
 
 appname = 'chorescheduling'
 urlpatterns = [
+  path('create-household', views.create_household, name='create_household'),
   path('create-schedule', views.create_schedule, name='create_schedule')
 
   # path('', views.test1, name='test1'),
