@@ -1,0 +1,14 @@
+#notif {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+}
+
+#feed {
+    flex-basis: 70%;
+    border-right: solid black;
+}
+
+#options {
+    flex-basis: 30%;
+}
