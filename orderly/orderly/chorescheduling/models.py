@@ -2,6 +2,7 @@ from django.db import models
 
 class Household(models.Model):
   hid = models.AutoField(primary_key=True)
+  linked_shedule = models.ForeignKey('Schedule', on_delete=models.CASCADE)
   # household_name
   # admin
   
@@ -41,6 +42,7 @@ class ChoreInfo(models.Model):
   name = models.CharField(max_length=20)
   description = models.CharField(max_length=100)
   linked_household = models.ForeignKey('Household', on_delete=models.CASCADE)
+  completed = models.BooleanField(default=False)
 
   def __str__(self):
     return "ChoreInfo " + self.name
@@ -52,6 +54,7 @@ class Person(models.Model): # see if we can add these fields to user instead
   # email id
   # password
   # status
+  # is household admin?
 
   def __str__(self):
     return "Person " + self.name
