@@ -1,13 +1,10 @@
 import React from 'react';
 import './App.css';
 import LoginPage from '../Login/LoginPage';
-import { Router, Link } from "@reach/router"
+import { Router } from "@reach/router"
 import Home from './Home';
 
 class App extends React.Component{
-    constructor(props) {
-        super(props);
-    }
 
     render() {
         return (
