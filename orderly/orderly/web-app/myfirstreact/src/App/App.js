@@ -11,7 +11,7 @@ class App extends React.Component{
         return (
             <div className="App">
                 <h1 id="heading">Orderly</h1>
-
+                
                 <Router>
                     <Login path="/"/>
                     <Home path="home"/>

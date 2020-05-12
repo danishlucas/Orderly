@@ -7,6 +7,9 @@ import DateForm from "./DateForm";
 import DayOfWeekPicker from "./DayOfWeekPicker";
 import ChoreTypeButtons from "./ChoreTypeButtons";
 import ChoreViewButtons from "./ChoreViewButtons";
+import HouseSelect from "./HouseSelect";
+import ChoreCalendar from "./ChoreCalendar";
+import ChoreList from "./ChoreList";
 
 /*Used to specify what type view chores are displayed in*/
 const ChoreView = {
@@ -32,6 +35,7 @@ class Chores extends Component {
         this.state = {
             choreView: ChoreView.CALENDAR,
             choreType: ChoreType.UPCOMING,
+            viewPage: <ChoreCalendar/>,
             dow: initDate.getDay(),
             day: initDate.getDate(),
             month: initDate.getMonth(),
@@ -121,9 +125,14 @@ class Chores extends Component {
     }
 
     setChoreView(view) {
+        let viewPage = <ChoreCalendar/>;
+        if (view === ChoreView.LIST) {
+            viewPage = <ChoreList/>
+        }
         this.setState(
             {
-                choreView: view
+                choreView: view,
+                viewPage: viewPage
             }
         );
     }
@@ -140,6 +149,8 @@ class Chores extends Component {
 
                 <div id="middle-column">
                     <DayOfWeekPicker initDay={this.state.dow} onDayClick={this.moveDay} onChevronClick={this.moveWeek}/>
+                    <HouseSelect choreView={this.state.choreView}/>
+                    {this.state.viewPage}
                 </div>
 
                 <div id="right-column">
