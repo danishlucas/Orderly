@@ -1,4 +1,5 @@
 import React from 'react';
+import Request from 'superagent';
 import { FormGroup, InputGroup, Divider } from "@blueprintjs/core";
 import './LoginPage.css';
 import { navigate } from "@reach/router"
@@ -44,11 +45,20 @@ function Login() {
             setCreateEmailHelper("Email is invalid");
             return;
         } else if (createPassword.length < 5) {
-            setCreatePasswordHelper("password should be at least 5 characters long");
+            setCreatePasswordHelper("Password must be at least 5 characters long");
             return;
         }
-        console.log("email and password are valid");
-        navigate('home');
+
+        const requestObject = {
+            name: createEmail
+        };
+        const url = "http://127.0.0.1:8000/chorescheduling/create-user";
+        Request
+            .post(url)
+            .send(requestObject)
+            .then(res => {
+                console.log("data is", res.body);
+            });
     }
 
     function handleLogin() {
