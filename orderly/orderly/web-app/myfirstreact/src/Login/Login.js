@@ -1,10 +1,9 @@
 import React from 'react';
-import { Link } from "@reach/router"
-import { FormGroup, InputGroup } from "@blueprintjs/core";
+import { FormGroup, InputGroup, Divider } from "@blueprintjs/core";
 import './LoginPage.css';
 import { navigate } from "@reach/router"
 
-function Login(props) {
+function Login() {
 
     const [createEmail, setCreateEmail] = React.useState("");
     const [createEmailHelper, setCreateEmailHelper] = React.useState("");
@@ -45,7 +44,7 @@ function Login(props) {
             setCreateEmailHelper("Email is invalid");
             return;
         } else if (createPassword.length < 5) {
-            setCreatePasswordHelper("password should be atleast 5 characters long");
+            setCreatePasswordHelper("password should be at least 5 characters long");
             return;
         }
         console.log("email and password are valid");
@@ -64,30 +63,33 @@ function Login(props) {
 
     return (
         <div id="login">
-            <h2>Create an account</h2>
+            <div>
+                <h2>Create an account</h2>
 
-            <FormGroup inline={true} label="Email" labelFor="text-input" helperText={createEmailHelper}>
-                <InputGroup id="email" placeholder="E-mail address" value={createEmail} onChange={createEmailOnChange} />
-            </FormGroup>
+                <FormGroup inline={true} label="Email" labelFor="text-input" helperText={createEmailHelper}>
+                    <InputGroup id="email" placeholder="E-mail address" value={createEmail} onChange={createEmailOnChange} />
+                </FormGroup>
 
-            <FormGroup label="Password" labelFor="text-input" inline={true} helperText={createPasswordHelper}>
-                <InputGroup id="password" placeholder="Password" value={createPassword} onChange={createPasswordOnChange}/>
-            </FormGroup>
+                <FormGroup label="Password" labelFor="text-input" inline={true} helperText={createPasswordHelper}>
+                    <InputGroup id="password" placeholder="Password" value={createPassword} onChange={createPasswordOnChange}/>
+                </FormGroup>
 
-            <button disabled={!createEmail || !createPassword} onClick={handleCreateAccount}>Create an account</button>
+                <button disabled={!createEmail || !createPassword} onClick={handleCreateAccount}>Create an account</button>
+            </div>
+            <Divider id="divider"/>
+            <div>
+                <h2>Log in</h2>
 
-            <p>OR</p>
-            <h2>Log in</h2>
+                <FormGroup label="Email" labelFor="text-input" inline={true} helperText={loginEmailHelper}>
+                    <InputGroup id="login-email" placeholder="E-mail address" value={loginEmail} onChange={loginEmailOnChange}/>
+                </FormGroup>
 
-            <FormGroup label="Email" labelFor="text-input" inline={true} helperText={loginEmailHelper}>
-                <InputGroup id="login-email" placeholder="E-mail address" value={loginEmail} onChange={loginEmailOnChange}/>
-            </FormGroup>
+                <FormGroup label="Password" labelFor="text-input" inline={true} helperText={loginPasswordHelper}>
+                    <InputGroup id="login-password" placeholder="Password" value={loginPassword} onChange={loginPasswordOnChange}/>
+                </FormGroup>
 
-            <FormGroup label="Password" labelFor="text-input" inline={true} helperText={loginPasswordHelper}>
-                <InputGroup id="login-password" placeholder="Password" value={loginPassword} onChange={loginPasswordOnChange}/>
-            </FormGroup>
-
-            <button disabled={!loginEmail || !loginPassword} onClick={handleLogin}>Login</button>
+                <button disabled={!loginEmail || !loginPassword} onClick={handleLogin}>Login</button>
+            </div>
         </div>
     )
 }
