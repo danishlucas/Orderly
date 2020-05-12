@@ -125,7 +125,7 @@ def view_individual_chore_schedule(request):
 #   'completed': True/False based on whether chore is completed,
 #   'hid': house id of this chore
 def get_chore_info(request):
-  CHORE_ID = request.GET>get('cid', None)
+  CHORE_ID = request.GET.get('cid', None)
   chore = Chore.objects.get(cid=CHORE_ID)
   chore_info = ChoreInfo.objects.get(ciid=chore.chore_info)
   data = {
