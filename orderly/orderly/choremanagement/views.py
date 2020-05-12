@@ -1,22 +1,24 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from chorescheduling.models import Household, Schedule, Week, Chore, ChoreInfo, Person
+import json
 
 # Create your views here.
 def index(request):
   return HttpResponse("This is the chore management app")
 
-# parameters: Chore ID, completed
+# parameters: cid, completed
 # preconditions: household created and choreinfos/people been defined, chores have been assigned 
 # postconditions: chore completion status changed to completed
 # use case: user wants to change completion status of a certain chore
 # JSON format: 
 #            'all_users_linked': true on success, false on failure
 def change_chore_completion_status(request):
-  # CHORE_ID = request.GET.get('cid', None)
-  CHORE_ID = 20
-  # COMPLETED = request.GET.get('completed', None)
-  COMPLETED = True
+  data = json.load(request)
+  CHORE_ID = data['cid', None]
+  # CHORE_ID = 20
+  COMPLETED = data['completed']
+  # COMPLETED = True
 
   chore = Chore.objects.get(cid=CHORE_ID)
   chore.completed = COMPLETED
@@ -29,19 +31,20 @@ def change_chore_completion_status(request):
   return JsonResponse(data)
   # return HttpResponse(output, content_type="text/plain")
 
-# parameters: Chore ID, giver, reciever
+# parameters: cid, giver, reciever
 # preconditions: household created and choreinfos/people been defined, chores have been assigned 
 # postconditions: chore becomes assigned to reciever on success
 # use case: user trades chore to someone else
 # JSON format: 
 #            'all_users_linked': true on success, false on failure
 def change_chore_assignment(request):
-  # CHORE_ID = request.GET.get('cid', None)
-  CHORE_ID = 20
-  # GIVER_PERSON = request.GET.get('giver', None)
-  GIVER_PERSON_ID = 3
-  # RECIEVER_PERSON = request.GET.get('reciever', None)
-  RECIEVER_PERSON_ID = 4
+  data = json.load(request)
+  CHORE_ID = data['cid']
+  # CHORE_ID = 20
+  GIVER_PERSON_ID = data['giver']
+  # GIVER_PERSON_ID = 3
+  RECIEVER_PERSON_ID = data['reciever']
+  # RECIEVER_PERSON_ID = 4
 
   giver = Person.objects.get(pid=GIVER_PERSON_ID)
   chore = Chore.objects.get(cid=CHORE_ID)
@@ -63,12 +66,13 @@ def change_chore_assignment(request):
   # return HttpResponse(output, content_type="text/plain")
 
 # parameters: Household ID
-# preconditions: household created and choreinfos/people been defined, chores have been assigned 
+# preconditions: household created and choreinfos/people been defined, chores have been assigned
 # postconditions: no database changes made
 # use case: to display the chore schedule for a household
 def view_household_chore_schedule(request):
-  # HOUSEHOLD_ID = request.GET.get('hid', None)
-  HOUSEHOLD_ID = 6
+  data = json.load(request)
+  HOUSEHOLD_ID = data['hid']
+  # HOUSEHOLD_ID = 6
   household = Household.objects.get(hid=HOUSEHOLD_ID)
   schedule = Schedule.objects.get(sid=household.linked_schedule)
 
@@ -81,18 +85,18 @@ def view_household_chore_schedule(request):
   household_output = "Household: " + str(HOUSEHOLD_ID) + '\n'
   schedule_output = "Schedule: " + str(schedule.sid) + ", Linked Household = " + str(schedule.linked_household_id) + ", Number of Weeks = " + str(schedule.num_weeks) + '\n' + '\n'
   week_output = ""
-  for week in week_list: 
+  for week in week_list:
     week_output += "Week: " + str(week.week_num) + ", " + "Linked Schedule = " + str(week.linked_schedule_id) + '\n'
-    chore_list = Chore.objects.filter(linked_week_id=week.wid) 
-    for chore in chore_list: 
-      chore_info = ChoreInfo.objects.get(ciid=chore.chore_info_id)
-      person = Person.objects.get(pid=chore.assigned_to_id)
-      week_output += "   " + "id = " + str(chore.cid) + ", " + chore_info.name + " --- " + person.name + '\n' 
+    chore_list = Chore.objects.filter(linked_week_id=week.wid)
+    for chore in chore_list:
+      chore_info = ChoreInfo.objects.get(ciid=chore.chore_info)
+      person = Person.objects.get(pid=chore.assigned_to)
+      week_output += "   " + "id = " + str(chore.cid) + ", " + chore_info.name + " --- " + person.name + '\n'
     week_output += '\n'
   return HttpResponse(household_output + schedule_output + week_output, content_type="text/plain")
 
 # parameters: Person ID
-# preconditions: household created and choreinfos/people been defined, chores have been assigned 
+# preconditions: household created and choreinfos/people been defined, chores have been assigned
 # postconditions: no database changes made
 # use case: to display the chore schedule for a single person
 #           Note: this  includes chores for a person regardless of completion status
@@ -100,7 +104,8 @@ def view_household_chore_schedule(request):
 #   'pid': Person ID
 #   'chore_list': list of chore IDs
 def view_individual_chore_schedule(request):
-  PERSON_ID = request.GET.get('pid', None)
+  data = json.load(request)
+  PERSON_ID = data['pid', None]
 
   chore_list = []
   for chore in Chore.objects.filter(assigned_to=PERSON_ID):
@@ -113,21 +118,27 @@ def view_individual_chore_schedule(request):
   return JsonResponse(data)
 
 # parameters: Chore ID
-# preconditions: household created and choreinfos/people been defined, chores have been assigned 
+# preconditions: household created and choreinfos/people been defined, chores have been assigned
 # postconditions: no database changes made
 # use case: to get the info for a specific chore
 # JSON format:
+# {
 #   'cid': Chore ID,
 #   'ciid': Chore Info ID,
 #   'name': Chore Info Name,
 #   'description': Chore Info Description,
 #   'assigned_to': pid of person this chore is assigned to,
 #   'completed': True/False based on whether chore is completed,
-#   'hid': house id of this chore
+#   'hid': house id of this chore,
+#   'week_num': week number for this chore
+# }
+# Note: more JSON fields for information about the chore can be added if needed
 def get_chore_info(request):
-  CHORE_ID = request.GET.get('cid', None)
+  data = json.load(request)
+  CHORE_ID = data['cid']
   chore = Chore.objects.get(cid=CHORE_ID)
   chore_info = ChoreInfo.objects.get(ciid=chore.chore_info)
+  week = Week.objects.get(wid=chore.linked_week)
   data = {
     'cid': CHORE_ID,
     'ciid': chore_info.ciid,
@@ -135,6 +146,7 @@ def get_chore_info(request):
     'description': chore_info.description,
     'assigned_to': chore.assigned_to,
     'completed': chore.completed,
-    'hid': chore_info.linked_household
+    'hid': chore_info.linked_household,
+    'week_num': week.week_num
   }
   return JsonResponse(data)
