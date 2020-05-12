@@ -115,7 +115,10 @@ def generate_schedule(request):
     pass
   schedule = Schedule(num_weeks=SCHEDULE_NUM_WEEKS, linked_household_id=household.hid)
   schedule.save()
-
+  
+  household.linked_schedule = schedule.sid
+  household.save()
+  
   persons = Person.objects.filter(linked_household__hid=HOUSEHOLD_ID)
   chore_infos = ChoreInfo.objects.filter(linked_household__hid=HOUSEHOLD_ID)
 

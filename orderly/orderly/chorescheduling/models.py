@@ -2,6 +2,7 @@ from django.db import models
 
 class Household(models.Model):
   hid = models.AutoField(primary_key=True)
+  linked_shedule = models.ForeignKey('Schedule', on_delete=models.CASCADE)
   # household_name
   # admin
   
@@ -28,7 +29,8 @@ class Chore(models.Model):
   cid = models.AutoField(primary_key=True)
   chore_info = models.ForeignKey('ChoreInfo', on_delete=models.CASCADE) # many-to-one relationship with choreinfo
   linked_week = models.ForeignKey('Week', on_delete=models.CASCADE) # many-to-one relationship with week
-  assigned_to = models.ForeignKey('Person', on_delete=models.PROTECT) # many-to-one relationship with person
+  assigned_to = models.ForeignKey('Person', on_delete=models.PROTECT) # many-to-one relationship with person\
+  completed = models.BooleanField(default=False)
   # status 
   # deadline
   # household id
@@ -41,6 +43,7 @@ class ChoreInfo(models.Model):
   name = models.CharField(max_length=20)
   description = models.CharField(max_length=100)
   linked_household = models.ForeignKey('Household', on_delete=models.CASCADE)
+  
 
   def __str__(self):
     return "ChoreInfo " + self.name
@@ -52,6 +55,7 @@ class Person(models.Model): # see if we can add these fields to user instead
   # email id
   # password
   # status
+  # is household admin?
 
   def __str__(self):
     return "Person " + self.name
