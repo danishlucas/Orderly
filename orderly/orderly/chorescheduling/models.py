@@ -2,7 +2,6 @@ from django.db import models
 
 class Household(models.Model):
   hid = models.AutoField(primary_key=True)
-  linked_shedule = models.ForeignKey('Schedule', on_delete=models.CASCADE)
   # household_name
   # admin
   
@@ -34,6 +33,7 @@ class Chore(models.Model):
   # status 
   # deadline
   # household id
+  
 
   def __str__(self):
     return "Chore " + str(self.cid) + " - wk " + str(self.linked_week.week_num)
