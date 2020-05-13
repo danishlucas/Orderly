@@ -1,4 +1,5 @@
 .idea
 *.iml
-__pycache__
+orderly/orderly/db.sqlite3
+*__pycache__*
 orderlyenv/

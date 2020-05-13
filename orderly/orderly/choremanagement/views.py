@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from chorescheduling.models import Household, Schedule, Week, Chore, ChoreInfo, Person
+from feedstructuring.models import Notification
 import json
 
 # Create your views here.
@@ -21,9 +22,14 @@ def change_chore_completion_status(request):
   # COMPLETED = True
 
   chore = Chore.objects.get(cid=CHORE_ID)
+
   chore.completed = COMPLETED
   chore.save()
   linked = True
+  
+  notification = Notification(chore_info=chore, action=Notification.ACTIONS.COMPLETED.value)
+  notification.save()
+  
   # output = "Changed completion status of " + chore_info.name + " to " + COMPLETED
   data = {
     'all_users_linked': linked
@@ -58,6 +64,10 @@ def change_chore_assignment(request):
   chore.assigned_to = RECIEVER_PERSON_ID
   reciever = Person.objects.get(pid=RECIEVER_PERSON_ID)
   chore.save()
+
+  notification = Notification(chore_info=chore, action=Notification.ACTIONS.CHANGED.value)
+  notification.save()
+  
   data = {
     'all_users_linked': linked
   }
