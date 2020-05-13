@@ -1,5 +1,5 @@
 from django.db import models
-from chorescheduling.models import ChoreInfo
+from chorescheduling.models import Chore
 from enum import Enum
 
 # Create your models here.
@@ -16,10 +16,10 @@ class Notification(models.Model):
         (ACTIONS.CHANGED, "Changed")
     )
 
-    # UUID for primary key
-    uuid = models.AutoField(primary_key=True)
+    # ID
+    id = models.AutoField(primary_key=True)
     # Placeholder reference to the updated action
-    chore_id = models.ForeignKey('chorescheduling.ChoreInfo', on_delete=models.CASCADE)
+    chore_id = models.ForeignKey('chorescheduling.Chore', on_delete=models.CASCADE)
     # Type of action
     action = models.IntegerField(choices=ACTION_SEQUENCE, default=ACTIONS.COMPLETED)
     # Timestamp of action

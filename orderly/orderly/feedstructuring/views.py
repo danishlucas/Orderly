@@ -5,7 +5,7 @@ from django.http import HttpResponse
 def index(request):
     return HttpResponse("This is the feed structuring app")
 
-def get_notification(request, uuid):
+def get_notification(request, id):
     return HttpResponse("Notification")
 
 
@@ -26,11 +26,11 @@ class LatestEntriesFeed(Feed):
 
     # Get info for notification item
     def item_title(self, item):
-        return item.uuid
+        return item.id
 
     # Get description of notification item
     def item_description(self, item):
-        return item.__str__() + " on chore " + str(item.chore_id.ciid)
+        return item.__str__() + " on chore " + str(item.chore_id.cid)
 
     def item_link(self, item):
-        return reverse('notification', args=[item.uuid])
+        return reverse('notification', args=[item.id])

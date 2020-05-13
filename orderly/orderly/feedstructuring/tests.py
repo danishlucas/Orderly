@@ -11,8 +11,8 @@ class RSSFeedTestCase(TestCase):
 
     def create_notification(self, action):
         RSSFeedTestCase.chore_id += 1
-        chore_info = baker.make('chorescheduling.ChoreInfo')
-        return Notification.objects.create(chore_id=chore_info, action=action)
+        chore = baker.make('chorescheduling.Chore')
+        return Notification.objects.create(chore_id=chore, action=action)
 
     def test_feed_no_notifications(self):
         response = self.client.get(reverse('feed'))
