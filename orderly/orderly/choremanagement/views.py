@@ -73,8 +73,7 @@ def view_household_chore_schedule(request):
   data = json.load(request)
   HOUSEHOLD_ID = data['hid']
   # HOUSEHOLD_ID = 6
-  household = Household.objects.get(hid=HOUSEHOLD_ID)
-  schedule = Schedule.objects.get(sid=household.linked_schedule)
+  schedule = Schedule.objects.get(linked_houshold=HOUSEHOLD_ID)
 
   # get all weeks for this schedule
   week_list = []
