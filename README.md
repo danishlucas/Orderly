@@ -28,6 +28,12 @@ Setting up Django server for backend instructions:
     pip install -r ../requirements.txt 
     ```   
 
+5. Run tests
+    ```
+    cd Orderly/orderly/orderly
+    python manage.py test
+    ``` 
+
 5. Navigate to appropriate directory and get web server running. 
     ```
     cd Orderly/orderly/orderly
