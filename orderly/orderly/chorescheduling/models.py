@@ -28,10 +28,12 @@ class Chore(models.Model):
   cid = models.AutoField(primary_key=True)
   chore_info = models.ForeignKey('ChoreInfo', on_delete=models.CASCADE) # many-to-one relationship with choreinfo
   linked_week = models.ForeignKey('Week', on_delete=models.CASCADE) # many-to-one relationship with week
-  assigned_to = models.ForeignKey('Person', on_delete=models.PROTECT) # many-to-one relationship with person
+  assigned_to = models.ForeignKey('Person', on_delete=models.PROTECT) # many-to-one relationship with person\
+  completed = models.BooleanField(default=False)
   # status 
   # deadline
   # household id
+  
 
   def __str__(self):
     return "Chore " + str(self.cid) + " - wk " + str(self.linked_week.week_num)
@@ -41,7 +43,7 @@ class ChoreInfo(models.Model):
   name = models.CharField(max_length=20)
   description = models.CharField(max_length=100)
   linked_household = models.ForeignKey('Household', on_delete=models.CASCADE)
-  completed = models.BooleanField(default=False)
+  
 
   def __str__(self):
     return "ChoreInfo " + self.name

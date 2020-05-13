@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from .models import Household, Schedule, Week, Chore, ChoreInfo, Person
+import json
 
 # bugs 
 # - won't allow you to delete person if they are assigned to chore, won't allow to delete household
@@ -13,18 +14,16 @@ from .models import Household, Schedule, Week, Chore, ChoreInfo, Person
 # postconditions: user created
 # use case: signing up for an account
 def create_user(request):
-  # PERSON_NAME = request.GET.get('name', None)
-  PERSON_NAME = "Earnie"
+  data = json.load(request)
+  PERSON_NAME = data['name']
   
   person = Person(name=PERSON_NAME)
   person.save()
-  user_output = "User " + str(person.name) + " created"
 
-  # data = {
-  #   'user_created': User.objects.filter(name=PERSON_NAME).exists()
-  # }
-  # return JsonResponse(data)
-  return HttpResponse(user_output, content_type="text/plain")
+  data = {
+    'user_created': Person.objects.filter(name=PERSON_NAME).exists()
+  }
+  return JsonResponse(data)
 
 # parameters: -
 # preconditions: - 
@@ -33,78 +32,66 @@ def create_user(request):
 def create_household(request):
   household = Household()
   household.save()
-  household_output = "Household " + str(household.hid) + " created"
 
-  # data = {
-  #   'household_created': Household.objects.filter(hid=household.hid).exists()
-  # }
-  # return JsonResponse(data)
-  return HttpResponse(household_output, content_type="text/plain")
+  data = {
+    'household_id': Household.objects.get(hid=household.hid).hid
+  }
+  return JsonResponse(data)
 
 # parameters: household ID, list of users
 # preconditions: household created, user to be added to household created
 # postconditions: user added to househould
 # use case: initial set-up OR adding someone to household through options
 def add_household_users(request):
-  # HOUSEHOLD_ID = request.GET.get('hid', None)
-  # PERSON_NAMES = request.GET.get('names', None)
-  HOUSEHOLD_ID = 6
-  PERSON_NAMES = ["Dorothy", "Earnie"]
+  data = json.load(request)
+  HOUSEHOLD_ID = data['hid']
+  PERSON_NAMES = data['names']
 
-  people_output = ""
   linked = True
   for person_name in PERSON_NAMES:
     person = Person.objects.get(name=person_name)
     person.linked_household_id = HOUSEHOLD_ID
     person.save()
-    people_output += person.name + '\n'
 
     if Person.objects.get(name=person_name).linked_household_id != HOUSEHOLD_ID:
       linked = False
-  people_output += '\n' + "Users added to household " + str(HOUSEHOLD_ID)
 
-  # data = {
-  #   'all_users_linked': linked
-  # }
-  # return JsonResponse(data)
-  return HttpResponse(people_output, content_type="text/plain")
+  data = {
+    'all_users_linked': linked
+  }
+  return JsonResponse(data)
 
 # parameters: household ID, list of chores/descriptions
 # preconditions: household created
 # postconditions: choreinfos created and linked to that househould
 # use case: initial set-up OR when resetting chore schedule through options
 def add_household_chores(request):
-  # HOUSEHOLD_ID = request.GET.get('hid', None)
-  # CHORE_NAMES = request.GET.get('names', None)
-  # CHORE_DESCRIPTIONS = request.GET.get('descriptions', None)
-  HOUSEHOLD_ID = 6
-  CHORE_NAMES = ["chore 4", "chore 5", "chore 6"]
-  CHORE_DESCRIPTIONS = ["description 4", "decription 5", "description 6"]
+  data = json.load(request)
+  HOUSEHOLD_ID = data['hid']
+  CHORE_NAMES = data['names']
+  CHORE_DESCRIPTIONS = data['descriptions']
   
-  chore_output = ""
   linked = True
   for x in range(0, len(CHORE_NAMES)): 
     chore_info = ChoreInfo(name=CHORE_NAMES[x], description=CHORE_DESCRIPTIONS[x], linked_household_id=HOUSEHOLD_ID)
     chore_info.save()
-    chore_output += chore_info.name + " - " + chore_info.description + " created" + '\n'
     
     if ChoreInfo.objects.get(name=CHORE_NAMES[x]).linked_household_id != HOUSEHOLD_ID:
       linked = False
-  chore_output += '\n' + "Chores linked with household " + str(HOUSEHOLD_ID)
   
-  # data = {
-  #   'all_users_linked': linked
-  # }
-  # return JsonResponse(data)
-  return HttpResponse(chore_output, content_type="text/plain")
+  data = {
+    'all_chores_linked': linked
+  }
+  return JsonResponse(data)
 
 # parameters: household id, number of weeks for schedule
 # preconditions: household created and choreinfos/people been defined 
 # postcondition: within schedule, weeks generated .... within weeks, list of chores assigned to people
 # use case: initial set-up (after defining choreinfos/people) OR when resetting chore schedule through options
 def generate_schedule(request):
-  HOUSEHOLD_ID = 6
-  SCHEDULE_NUM_WEEKS = 6
+  data = json.load(request)
+  HOUSEHOLD_ID = data['hid']
+  SCHEDULE_NUM_WEEKS = data['num_weeks']
 
   household = Household.objects.get(hid=HOUSEHOLD_ID)
 
@@ -116,7 +103,7 @@ def generate_schedule(request):
   schedule = Schedule(num_weeks=SCHEDULE_NUM_WEEKS, linked_household_id=household.hid)
   schedule.save()
   
-  household.linked_schedule = schedule.sid
+  household.linked_schedule_id = schedule.sid
   household.save()
   
   persons = Person.objects.filter(linked_household__hid=HOUSEHOLD_ID)
@@ -128,28 +115,24 @@ def generate_schedule(request):
     week.save()
     week_list.append(week)
 
+  json_week_list = {"weeks" : []}
+
   # creating chores for each week 
   first_person = 0
   num_people = len(persons)
   for week in week_list:
+    week_num = "week" + str(first_person)
+    json_chore_list = {week_num : []}
+
     for x in range(0, len(chore_infos)): 
       ciid = chore_infos[x].ciid
       wid = week.wid 
       pid = persons[(x + first_person) % num_people].pid 
       chore = Chore(chore_info_id=ciid, linked_week_id=wid, assigned_to_id=pid)
       chore.save()
-    first_person += 1
+      json_chore_list[week_num].append({"chore_name" : chore_infos[x].name, "assigned_to" : persons[(x + first_person) % num_people].name})
 
-  # formatting schedule 
-  household_output = "Household: " + str(HOUSEHOLD_ID) + '\n'
-  schedule_output = "Schedule: " + str(schedule.sid) + ", Linked Household = " + str(schedule.linked_household_id) + ", Number of Weeks = " + str(schedule.num_weeks) + '\n' + '\n'
-  week_output = ""
-  for week in week_list: 
-    week_output += "Week: " + str(week.week_num) + ", " + "Linked Schedule = " + str(week.linked_schedule_id) + '\n'
-    chore_list = Chore.objects.filter(linked_week_id=week.wid) 
-    for chore in chore_list: 
-      chore_info = ChoreInfo.objects.get(ciid=chore.chore_info_id)
-      person = Person.objects.get(pid=chore.assigned_to_id)
-      week_output += "   " + "id = " + str(chore.cid) + ", " + chore_info.name + " --- " + person.name + '\n' 
-    week_output += '\n'
-  return HttpResponse(household_output + schedule_output + week_output, content_type="text/plain")
+    first_person += 1
+    json_week_list["weeks"].append(json_chore_list)
+
+  return JsonResponse(json_week_list)

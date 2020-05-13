@@ -2,3 +2,4 @@
 *.iml
 orderly/orderly/db.sqlite3
 *__pycache__*
+orderlyenv/
