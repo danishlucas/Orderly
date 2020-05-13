@@ -3,11 +3,15 @@ from django.http import HttpResponse
 
 # Create your views here.
 def index(request):
-  return HttpResponse("This is the feed structuring app")
+    return HttpResponse("This is the feed structuring app")
+
+def get_notification(request, uuid):
+    return HttpResponse("Notification")
+
 
 from django.contrib.syndication.views import Feed
-from django.urls import reverse
 from .models import Notification
+from django.urls import reverse
 
 # Subclass RSS 2.0 feed
 class LatestEntriesFeed(Feed):
@@ -20,9 +24,13 @@ class LatestEntriesFeed(Feed):
     def items(self):
         return Notification.objects.order_by('-timestamp')[:5]
 
-    # Get info for notification
+    # Get info for notification item
     def item_title(self, item):
         return item.uuid
 
+    # Get description of notification item
     def item_description(self, item):
-        return item.action
+        return item.__str__() + " on chore " + str(item.chore_id.ciid)
+
+    def item_link(self, item):
+        return reverse('notification', args=[item.uuid])

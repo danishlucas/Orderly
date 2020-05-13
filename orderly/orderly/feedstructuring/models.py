@@ -1,13 +1,27 @@
 from django.db import models
+from chorescheduling.models import ChoreInfo
+from enum import Enum
 
 # Create your models here.
 
 # Notification object for actions taken
 class Notification(models.Model):
+    # Types of actions
+    class ACTIONS(Enum):
+        COMPLETED = 0
+        CHANGED = 1
+
+    ACTION_SEQUENCE = (
+        (ACTIONS.COMPLETED, "Completed"),
+        (ACTIONS.CHANGED, "Changed")
+    )
+
     # UUID for primary key
     uuid = models.AutoField(primary_key=True)
     # Placeholder reference to the updated action
-    action = models.ForeignKey('Action', on_delete=models.CASCADE)
+    chore_id = models.ForeignKey('chorescheduling.ChoreInfo', on_delete=models.CASCADE)
+    # Type of action
+    action = models.IntegerField(choices=ACTION_SEQUENCE, default=ACTIONS.COMPLETED)
     # Timestamp of action
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -15,8 +29,4 @@ class Notification(models.Model):
         ordering = ["-timestamp"]
 
     def __str__(self):
-        return self.action
-
-    def get_absolute_url(self):
-        from django.urls import reverse
-        return reverse("post_detail", kwargs={"slug": str(self.uuid)})
+        return self.ACTIONS(self.action).name

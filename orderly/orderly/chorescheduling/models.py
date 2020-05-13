@@ -2,7 +2,6 @@ from django.db import models
 
 class Household(models.Model):
   hid = models.AutoField(primary_key=True)
-  linked_shedule = models.ForeignKey('Schedule', on_delete=models.CASCADE)
   # household_name
   # admin
   

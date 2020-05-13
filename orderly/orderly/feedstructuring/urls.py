@@ -4,5 +4,6 @@ from . import views
 appname = 'feedstructuring'
 urlpatterns = [
   path('', views.index, name='index'),
-  path('feed/rss', views.LatestEntriesFeed(), name='feed')
+  path('feed', views.LatestEntriesFeed(), name='feed'),
+  path('feed/<int:notification>', views.get_notification, name='notification')
 ]
