@@ -201,8 +201,6 @@ def create_household(request):
     }
     return JsonResponse(data)
 
-# ---------------
-
 # parameters: household ID, list of usernames
 # preconditions: household created, user to be added to household created
 # postconditions: user added to househould
