@@ -6,8 +6,7 @@ from .models import Household, Schedule, Week, Chore, ChoreInfo, Person
 import json, datetime
 
 # bugs 
-# - remove household users, remove household chores
-# - view schedule, pass in week and household no (or get from logged in user)
+# - get entire schedule, get weekly schedule .... pass in week and household no (or get from logged in user)
 # - won't allow you to delete person if they are assigned to chore, won't allow to delete household
 # - works if num_chores >= num_people, but consider case where num_people > num_chores
 # - varying chore frequency
@@ -29,12 +28,8 @@ def create_user(request):
   PERSON_FIRSTNAME = "Ben"
   PERSON_LASTNAME = "Ten"
   PERSON_PASSWORD = "benten"
-  # -------------------------------
-  # PERSON_USERNAME = "caleb@gmail.com"
-  # PERSON_FIRSTNAME = "Caleb"
-  # PERSON_LASTNAME = ""
-  # PERSON_PASSWORD = "benten"
 
+  # checking is user already in database
   if User.objects.filter(username=PERSON_USERNAME).exists():
     data = {
       'username' : "-", 
@@ -64,14 +59,12 @@ def login_user(request):
   # PERSON_USERNAME = data['username']
   # PERSON_PASSWORD = data['password']
   # --------------------------------
-  # PERSON_USERNAME = "ben@gmail.com"
-  # PERSON_PASSWORD = "benten"
-  # --------------------------------
-  PERSON_USERNAME = "ariana@gmail.com"
+  PERSON_USERNAME = "ben@gmail.com"
   PERSON_PASSWORD = "benten"
 
   user = authenticate(username=PERSON_USERNAME, password=PERSON_PASSWORD)
 
+  # checking if username/password combo valid
   if user is None:
     data = {
       'username' : "-", 
@@ -100,9 +93,38 @@ def logout_user(request):
 # preconditions: - 
 # postconditions: -
 # use case: get information about logged in user
-def get_user_details(request):
+def get_active_user(request):
   current_user = request.user 
+  
+  # checking to see if anyone actually logged in
   if current_user.username == "":
+    data = {
+      'person_id' : "-",
+      'username' : "-", 
+      'error_message' : "No one logged in"
+    }
+    return JsonResponse(data)
+  else: 
+    current_person = Person.objects.get(name=current_user.username)
+    data = {
+      'person_id' : current_person.pid,
+      'username' : current_person.name, 
+      'error_message' : "-"
+    }
+    return JsonResponse(data)
+
+# parameters: username
+# preconditions: - 
+# postconditions: returns error message "User does not exist" if user doesn't exist
+# use case: get information about specified user
+def get_user_details(request):
+  # data = json.load(request)
+  # USERNAME = data['username']
+  # --------------------------------
+  USERNAME = "ben@gmail.com"
+  
+  # checking to see if user exists
+  if not Person.objects.filter(name=USERNAME).exists(): 
     data = {
       'firstname' : "-",
       'lastname' : "-",
@@ -111,11 +133,28 @@ def get_user_details(request):
       'household_id' : "-",
       'household_name' : "-",
       'household_admin' : "-",
-      'error_message' : "No one logged in"
+      'error_message' : "User does not exist"
     }
     return JsonResponse(data)
+  # checking to see if user has no houshold attached to them
+  elif Person.objects.get(name=USERNAME).linked_household is None:
+    current_person = Person.objects.get(name=USERNAME)
+    current_user = User.objects.get(username=USERNAME)
+    data = {
+      'firstname' : current_user.first_name,
+      'lastname' : current_user.last_name,
+      'username' : current_user.username, 
+      'person_id' : current_person.pid,
+      'household_id' : "-",
+      'household_name' : "-",
+      'household_admin' : "-",
+      'error_message' : "-"
+    }
+    return JsonResponse(data)
+  # user exists, has household attached
   else:
-    current_person = Person.objects.get(name=current_user.username)
+    current_person = Person.objects.get(name=USERNAME)
+    current_user = User.objects.get(username=USERNAME)
     current_household = Household.objects.get(hid=current_person.linked_household_id)
     data = {
       'firstname' : current_user.first_name,
@@ -139,6 +178,7 @@ def get_schedule_details(request):
   # --------------------------------
   HOUSEHOLD_ID = 1
 
+  # checking to see if schedule exists for given household
   if not Schedule.objects.filter(linked_household_id=HOUSEHOLD_ID).exists():
     data = {
       'schedule_id' : "-",
@@ -161,8 +201,8 @@ def get_schedule_details(request):
 
 # parameters: household name
 # preconditions: user logged in and not linked to another household
-# postconditions: household created and currently logged in user set to admin, will return error messages
-#                 if no user logged in or user already linked to another household
+# postconditions: household created and currently logged in user set to admin of household, will return 
+#                 error messages if no user logged in or user already linked to another household
 # use case: after admin creates account, would have the option to create a household
 def create_household(request):
   # data = json.load(request)
@@ -171,6 +211,8 @@ def create_household(request):
   HOUSEHOLD_NAME = "The Crib"
 
   current_user = request.user
+
+  # checking to see if user logged in
   if current_user.username == "":
     data = {
       'household_id' : "-",
@@ -179,6 +221,7 @@ def create_household(request):
       'error_message' : "User needs to be logged in to create household"
     }
     return JsonResponse(data)
+  # checking to ensure that user not linked to another household already
   elif Person.objects.get(name=current_user.username).linked_household is not None:
     data = {
       'household_id' : "-",
@@ -201,6 +244,31 @@ def create_household(request):
     }
     return JsonResponse(data)
 
+# parameters: household ID
+# preconditions: household created
+# postconditions: 
+# use case: when accessing all the household users
+def get_household_users(request):
+  # data = json.load(request)
+  # HOUSEHOLD_ID = data['hid']
+  # --------------------------------
+  HOUSEHOLD_ID = 1
+
+  if not Household.objects.filter(hid=HOUSEHOLD_ID).exists():
+    data = {"people" : []}
+    return JsonResponse(data)
+  else: 
+    data = {"people" : []}
+    target_people = Person.objects.filter(linked_household_id=HOUSEHOLD_ID)
+    household_admin = Household.objects.get(hid=HOUSEHOLD_ID).admin
+    for person in target_people: 
+      user = User.objects.get(username=person.name)
+      is_admin = person.name == household_admin.name
+      person_data = {"pid" : person.pid, "username" : person.name, "first_name" : user.first_name, "last_name" : user.last_name, "is_admin" : is_admin}
+      data["people"].append(person_data)
+    return JsonResponse(data)
+
+
 # parameters: household ID, list of usernames
 # preconditions: household created, user to be added to household created
 # postconditions: user added to househould
@@ -213,19 +281,41 @@ def add_household_users(request):
   HOUSEHOLD_ID = 1
   PERSON_USERNAMES = ["ariana@gmail.com", "caleb@gmail.com"]
   
-  data = {"household_id" : HOUSEHOLD_ID, "people" : []}
+  data = {"household_id" : HOUSEHOLD_ID, "people_added" : []}
 
   for person_username in PERSON_USERNAMES:
     person = Person.objects.get(name=person_username)
     person.linked_household_id = HOUSEHOLD_ID
     person.save()
-    data["people"].append(person_username)
+    data["people_added"].append(person_username)
+
+  return JsonResponse(data)
+
+# parameters: household ID, list of usernames
+# preconditions: household created, user to be added to household created
+# postconditions: users removed from househould
+# use case: modifying list of users
+def remove_household_users(request):
+  # data = json.load(request)
+  # HOUSEHOLD_ID = data['hid']
+  # PERSON_USERNAMES = data['usernames']
+  # --------------------------------
+  HOUSEHOLD_ID = 1
+  PERSON_USERNAMES = ["ariana@gmail.com", "caleb@gmail.com"]
+  
+  data = {"household_id" : HOUSEHOLD_ID, "people_removed" : []}
+
+  for person_username in PERSON_USERNAMES:
+    person = Person.objects.get(name=person_username)
+    person.linked_household = None
+    person.save()
+    data["people_removed"].append(person_username)
 
   return JsonResponse(data)
 
 # parameters: household ID, list of chores/descriptions
 # preconditions: household created
-# postconditions: choreinfos created and linked to that househould
+# postconditions: choreinfos created and linked to that househould, prevents chores with same name from being created for a given household
 # use case: initial set-up OR when resetting chore schedule through options
 def add_household_chores(request):
   # data = json.load(request)
@@ -233,17 +323,40 @@ def add_household_chores(request):
   # CHORE_NAMES = data['names']
   # CHORE_DESCRIPTIONS = data['descriptions']
   # --------------------------------
-  HOUSEHOLD_ID = 1
-  CHORE_NAMES = ["Kitchen", "Living Room", "Bathroom"]
+  HOUSEHOLD_ID = 2
+  CHORE_NAMES = ["Kitchen", "Dining Room", "Living Room"]
   CHORE_DESCRIPTIONS = ["description1", "description2", "description3"]
 
-  data = {"household_id" : HOUSEHOLD_ID, "chore_names" : [], "chore_descriptions" : []}
+  data = {"household_id" : HOUSEHOLD_ID, "added_chore_names" : [], "added_chore_descriptions" : []}
+  
+  for x in range(0, len(CHORE_NAMES)):
+    if not ChoreInfo.objects.filter(name=CHORE_NAMES[x], linked_household_id=HOUSEHOLD_ID).exists():
+      chore_info = ChoreInfo(name=CHORE_NAMES[x], description=CHORE_DESCRIPTIONS[x], linked_household_id=HOUSEHOLD_ID)
+      chore_info.save()
+      data["added_chore_names"].append(CHORE_NAMES[x])
+      data["added_chore_descriptions"].append(CHORE_DESCRIPTIONS[x])
+    
+  return JsonResponse(data)
+
+# parameters: household ID, list of chores/descriptions
+# preconditions: household created, choreinfos exist
+# postconditions: choreinfos removed
+# use case: modifying chore list
+def remove_household_chores(request):
+  # data = json.load(request)
+  # HOUSEHOLD_ID = data['hid']
+  # CHORE_NAMES = data['names']
+  # CHORE_DESCRIPTIONS = data['descriptions']
+  # --------------------------------
+  HOUSEHOLD_ID = 1
+  CHORE_NAMES = ["Living Room", "Dining Room", "Kitchen"]
+
+  data = {"household_id" : HOUSEHOLD_ID, "removed_chore_names" : []}
   
   for x in range(0, len(CHORE_NAMES)): 
-    chore_info = ChoreInfo(name=CHORE_NAMES[x], description=CHORE_DESCRIPTIONS[x], linked_household_id=HOUSEHOLD_ID)
-    chore_info.save()
-    data["chore_names"].append(CHORE_NAMES[x])
-    data["chore_descriptions"].append(CHORE_DESCRIPTIONS[x])
+    choreinfo = ChoreInfo.objects.get(linked_household_id=HOUSEHOLD_ID, name=CHORE_NAMES[x])
+    data["removed_chore_names"].append(choreinfo.name)
+    choreinfo.delete()
     
   return JsonResponse(data)
 
