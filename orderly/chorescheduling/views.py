@@ -6,28 +6,25 @@ from .models import Household, Schedule, Week, Chore, ChoreInfo, Person
 import json, datetime
 
 # bugs 
-# - get entire schedule, get weekly schedule .... pass in week and household no (or get from logged in user)
 # - won't allow you to delete person if they are assigned to chore, won't allow to delete household
 # - works if num_chores >= num_people, but consider case where num_people > num_chores
 # - varying chore frequency
-# - PUSH TO GIT
-
 
 # parameters: username (email), first name, last name, password
 # preconditions: user with same username does not already exist 
 # postconditions: user created, will return "User already exists" error message if user already exists
 # use case: signing up for an account
 def create_user(request):
-  # data = json.load(request)
-  # PERSON_USERNAME = data['username']
-  # PERSON_FIRSTNAME = data['firstname']
-  # PERSON_LASTNAME = data['lastname']
-  # PERSON_PASSWORD = data['password']
+  data = json.load(request)
+  PERSON_USERNAME = data['username']
+  PERSON_FIRSTNAME = data['firstname']
+  PERSON_LASTNAME = data['lastname']
+  PERSON_PASSWORD = data['password']
   # --------------------------------
-  PERSON_USERNAME = "ben@gmail.com"
-  PERSON_FIRSTNAME = "Ben"
-  PERSON_LASTNAME = "Ten"
-  PERSON_PASSWORD = "benten"
+  # PERSON_USERNAME = "ben@gmail.com"
+  # PERSON_FIRSTNAME = "Ben"
+  # PERSON_LASTNAME = "Ten"
+  # PERSON_PASSWORD = "benten"
 
   # checking is user already in database
   if User.objects.filter(username=PERSON_USERNAME).exists():
@@ -55,12 +52,12 @@ def create_user(request):
 # postconditions: user logged in, will return "User credentials invalid" error message if login unsuccesful
 # use case: logging in
 def login_user(request):
-  # data = json.load(request)
-  # PERSON_USERNAME = data['username']
-  # PERSON_PASSWORD = data['password']
+  data = json.load(request)
+  PERSON_USERNAME = data['username']
+  PERSON_PASSWORD = data['password']
   # --------------------------------
-  PERSON_USERNAME = "ben@gmail.com"
-  PERSON_PASSWORD = "benten"
+  # PERSON_USERNAME = "ben@gmail.com"
+  # PERSON_PASSWORD = "benten"
 
   user = authenticate(username=PERSON_USERNAME, password=PERSON_PASSWORD)
 
@@ -118,10 +115,10 @@ def get_active_user(request):
 # postconditions: returns error message "User does not exist" if user doesn't exist
 # use case: get information about specified user
 def get_user_details(request):
-  # data = json.load(request)
-  # USERNAME = data['username']
+  data = json.load(request)
+  USERNAME = data['username']
   # --------------------------------
-  USERNAME = "ben@gmail.com"
+  # USERNAME = "ben@gmail.com"
   
   # checking to see if user exists
   if not Person.objects.filter(name=USERNAME).exists(): 
@@ -171,12 +168,12 @@ def get_user_details(request):
 # parameters: household id
 # preconditions: schedule for household exists
 # postconditions: will return error message "Schedule for household doesn't exist" if no schedule generated
-# use case: get information about schedule associated with household
-def get_schedule_details(request):
-  # data = json.load(request)
-  # HOUSEHOLD_ID = data['hid']
+# use case: get schedule and schedule details associated with household
+def get_full_schedule(request):
+  data = json.load(request)
+  HOUSEHOLD_ID = data['hid']
   # --------------------------------
-  HOUSEHOLD_ID = 1
+  # HOUSEHOLD_ID = 1
 
   # checking to see if schedule exists for given household
   if not Schedule.objects.filter(linked_household_id=HOUSEHOLD_ID).exists():
@@ -185,19 +182,95 @@ def get_schedule_details(request):
       'start_date' : "-",
       'num_weeks' : "-", 
       'household_id' : "-",
+      'weeks' : [],
       'error_message' : "Schedule for household doesn't exist"
     }
     return JsonResponse(data)
   else:
     schedule = Schedule.objects.get(linked_household_id=HOUSEHOLD_ID)
+
+    week_list = []
+    for x in range(0, schedule.num_weeks):
+      week = Week.objects.get(week_num=x, linked_schedule_id=schedule.sid)
+      week_list.append(week)
+
+    weeks = []
+    counter = 0
+    for week in week_list: 
+      week_num = "week" + str(counter)
+      json_chores = {week_num : []}
+      chores_for_week = Chore.objects.filter(linked_week=week)
+
+      for chore in chores_for_week:
+        json_chores[week_num].append({"chore_name" : chore.chore_info.name, "chore_description" :  chore.chore_info.description, "assigned_to" : chore.assigned_to.name, "date" : chore.date})
+
+      counter += 1
+      weeks.append(json_chores)
+
     data = {
       'schedule_id' : schedule.sid,
       'start_date' : schedule.start_date,
       'num_weeks' : schedule.num_weeks, 
       'household_id' : schedule.linked_household_id,
+      'weeks' : weeks,
       'error_message' : "-"
     }
     return JsonResponse(data)
+
+# parameters: household id, week num (zero-based indexing)
+# preconditions: schedule for household exists
+# postconditions: will return error message if no schedule generated or week does not exist
+# use case: get schedule for the week
+def get_week_schedule(request):
+  data = json.load(request)
+  HOUSEHOLD_ID = data['hid']
+  WEEK_NUM = data['week_num']
+  # --------------------------------
+  # HOUSEHOLD_ID = 1
+  # WEEK_NUM = 7
+
+  # checking to see if schedule exists for given household
+  if not Schedule.objects.filter(linked_household_id=HOUSEHOLD_ID).exists():
+    data = {
+      'schedule_id' : "-",
+      'start_date' : "-",
+      'num_weeks' : "-", 
+      'household_id' : "-",
+      'week' : "-",
+      'error_message' : "Schedule for household doesn't exist"
+    }
+    return JsonResponse(data)
+  else:
+    schedule = Schedule.objects.get(linked_household_id=HOUSEHOLD_ID)
+
+    if not Week.objects.filter(week_num=WEEK_NUM, linked_schedule_id=schedule.sid).exists():
+      data = {
+        'schedule_id' : "-",
+        'start_date' : "-",
+        'num_weeks' : "-", 
+        'household_id' : "-",
+        'week' : "-",
+        'error_message' : "No week exists, need to pass in a lower week"
+      }
+      return JsonResponse(data)
+
+    week = Week.objects.get(week_num=WEEK_NUM, linked_schedule_id=schedule.sid)
+    chores = []
+    chores_for_week = Chore.objects.filter(linked_week=week)
+
+    for chore in chores_for_week:
+      chores.append({"chore_name" : chore.chore_info.name, "chore_description" :  chore.chore_info.description, "assigned_to" : chore.assigned_to.name, "date" : chore.date})
+
+    data = {
+      'schedule_id' : schedule.sid,
+      'start_date' : schedule.start_date,
+      'num_weeks' : schedule.num_weeks, 
+      'household_id' : schedule.linked_household_id,
+      'week' : chores,
+      'error_message' : "-"
+    }
+    return JsonResponse(data)
+
 
 # parameters: household name
 # preconditions: user logged in and not linked to another household
@@ -205,10 +278,10 @@ def get_schedule_details(request):
 #                 error messages if no user logged in or user already linked to another household
 # use case: after admin creates account, would have the option to create a household
 def create_household(request):
-  # data = json.load(request)
-  # HOUSEHOLD_NAME = data['name']
+  data = json.load(request)
+  HOUSEHOLD_NAME = data['name']
   # --------------------------------
-  HOUSEHOLD_NAME = "The Crib"
+  # HOUSEHOLD_NAME = "The Crib"
 
   current_user = request.user
 
@@ -249,10 +322,10 @@ def create_household(request):
 # postconditions: 
 # use case: when accessing all the household users
 def get_household_users(request):
-  # data = json.load(request)
-  # HOUSEHOLD_ID = data['hid']
+  data = json.load(request)
+  HOUSEHOLD_ID = data['hid']
   # --------------------------------
-  HOUSEHOLD_ID = 1
+  # HOUSEHOLD_ID = 1
 
   if not Household.objects.filter(hid=HOUSEHOLD_ID).exists():
     data = {"people" : []}
@@ -274,12 +347,12 @@ def get_household_users(request):
 # postconditions: user added to househould
 # use case: initial set-up OR adding someone to household through options
 def add_household_users(request):
-  # data = json.load(request)
-  # HOUSEHOLD_ID = data['hid']
-  # PERSON_USERNAMES = data['usernames']
+  data = json.load(request)
+  HOUSEHOLD_ID = data['hid']
+  PERSON_USERNAMES = data['usernames']
   # --------------------------------
-  HOUSEHOLD_ID = 1
-  PERSON_USERNAMES = ["ariana@gmail.com", "caleb@gmail.com"]
+  # HOUSEHOLD_ID = 1
+  # PERSON_USERNAMES = ["ariana@gmail.com", "caleb@gmail.com"]
   
   data = {"household_id" : HOUSEHOLD_ID, "people_added" : []}
 
@@ -296,12 +369,12 @@ def add_household_users(request):
 # postconditions: users removed from househould
 # use case: modifying list of users
 def remove_household_users(request):
-  # data = json.load(request)
-  # HOUSEHOLD_ID = data['hid']
-  # PERSON_USERNAMES = data['usernames']
+  data = json.load(request)
+  HOUSEHOLD_ID = data['hid']
+  PERSON_USERNAMES = data['usernames']
   # --------------------------------
-  HOUSEHOLD_ID = 1
-  PERSON_USERNAMES = ["ariana@gmail.com", "caleb@gmail.com"]
+  # HOUSEHOLD_ID = 1
+  # PERSON_USERNAMES = ["ariana@gmail.com", "caleb@gmail.com"]
   
   data = {"household_id" : HOUSEHOLD_ID, "people_removed" : []}
 
@@ -318,14 +391,14 @@ def remove_household_users(request):
 # postconditions: choreinfos created and linked to that househould, prevents chores with same name from being created for a given household
 # use case: initial set-up OR when resetting chore schedule through options
 def add_household_chores(request):
-  # data = json.load(request)
-  # HOUSEHOLD_ID = data['hid']
-  # CHORE_NAMES = data['names']
-  # CHORE_DESCRIPTIONS = data['descriptions']
+  data = json.load(request)
+  HOUSEHOLD_ID = data['hid']
+  CHORE_NAMES = data['names']
+  CHORE_DESCRIPTIONS = data['descriptions']
   # --------------------------------
-  HOUSEHOLD_ID = 2
-  CHORE_NAMES = ["Kitchen", "Dining Room", "Living Room"]
-  CHORE_DESCRIPTIONS = ["description1", "description2", "description3"]
+  # HOUSEHOLD_ID = 1
+  # CHORE_NAMES = ["Kitchen", "Dining Room", "Living Room"]
+  # CHORE_DESCRIPTIONS = ["description1", "description2", "description3"]
 
   data = {"household_id" : HOUSEHOLD_ID, "added_chore_names" : [], "added_chore_descriptions" : []}
   
@@ -343,13 +416,13 @@ def add_household_chores(request):
 # postconditions: choreinfos removed
 # use case: modifying chore list
 def remove_household_chores(request):
-  # data = json.load(request)
-  # HOUSEHOLD_ID = data['hid']
-  # CHORE_NAMES = data['names']
-  # CHORE_DESCRIPTIONS = data['descriptions']
+  data = json.load(request)
+  HOUSEHOLD_ID = data['hid']
+  CHORE_NAMES = data['names']
+  CHORE_DESCRIPTIONS = data['descriptions']
   # --------------------------------
-  HOUSEHOLD_ID = 1
-  CHORE_NAMES = ["Living Room", "Dining Room", "Kitchen"]
+  # HOUSEHOLD_ID = 2
+  # CHORE_NAMES = ["Living Room", "Dining Room", "Kitchen"]
 
   data = {"household_id" : HOUSEHOLD_ID, "removed_chore_names" : []}
   
@@ -360,21 +433,23 @@ def remove_household_chores(request):
     
   return JsonResponse(data)
 
-# -------------------------------------------------
-
 # parameters: household id, number of weeks for schedule, start date month, start date day, start date year
 # preconditions: household created and choreinfos/people been defined 
 # postcondition: within schedule, weeks generated .... within weeks, list of chores assigned to people
 # use case: initial set-up (after defining choreinfos/people) OR when resetting chore schedule through options
 def generate_schedule(request):
-  # data = json.load(request)
-  # HOUSEHOLD_ID = data['hid']
-  # SCHEDULE_NUM_WEEKS = data['num_weeks']
-  HOUSEHOLD_ID = 1 
-  SCHEDULE_NUM_WEEKS = 5
-  STARTDATE_MONTH = 10
-  STARTDATE_DAY = 20
-  STARTDATE_YEAR = 2020
+  data = json.load(request)
+  HOUSEHOLD_ID = data['hid']
+  SCHEDULE_NUM_WEEKS = data['num_weeks']
+  STARTDATE_MONTH = data['month']
+  STARTDATE_DAY = data['day']
+  STARTDATE_YEAR = data['year']
+  # --------------------------------
+  # HOUSEHOLD_ID = 1 
+  # SCHEDULE_NUM_WEEKS = 5
+  # STARTDATE_MONTH = 10
+  # STARTDATE_DAY = 20
+  # STARTDATE_YEAR = 2020
 
   household = Household.objects.get(hid=HOUSEHOLD_ID)
 
@@ -415,7 +490,7 @@ def generate_schedule(request):
       pid = persons[(x + first_person) % num_people].pid 
       chore = Chore(chore_info_id=ciid, linked_week_id=wid, assigned_to_id=pid, date=current_date)
       chore.save()
-      json_chore_list[week_num].append({"chore_name" : chore_infos[x].name, "assigned_to" : persons[(x + first_person) % num_people].name, "date" : current_date})
+      json_chore_list[week_num].append({"chore_name" : chore_infos[x].name, "chore_description" : chore_infos[x].description, "assigned_to" : persons[(x + first_person) % num_people].name, "date" : current_date})
 
     first_person += 1
     current_date += datetime.timedelta(days=7)
