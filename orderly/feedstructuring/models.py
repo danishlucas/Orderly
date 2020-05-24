@@ -1,5 +1,6 @@
 from django.db import models
 from chorescheduling.models import Chore
+from chorescheduling.models import Household
 from enum import Enum
 
 # Create your models here.
@@ -20,6 +21,8 @@ class Notification(models.Model):
     id = models.AutoField(primary_key=True)
     # Placeholder reference to the updated action
     chore_id = models.ForeignKey('chorescheduling.Chore', on_delete=models.CASCADE)
+    # Household for chore
+    household_id = models.ForeignKey('chorescheduling.Household', on_delete=models.CASCADE)
     # Type of action
     action = models.IntegerField(choices=ACTION_SEQUENCE, default=ACTIONS.COMPLETED)
     # Timestamp of action

@@ -27,7 +27,7 @@ def change_chore_completion_status(request):
   chore.save()
   linked = True
   
-  notification = Notification(chore_info=chore, action=Notification.ACTIONS.COMPLETED.value)
+  notification = Notification(chore_id=chore, household_id=chore.chore_info.linked_household, action=Notification.ACTIONS.COMPLETED.value)
   notification.save()
   
   # output = "Changed completion status of " + chore_info.name + " to " + COMPLETED
@@ -64,8 +64,8 @@ def change_chore_assignment(request):
   chore.assigned_to = RECIEVER_PERSON_ID
   reciever = Person.objects.get(pid=RECIEVER_PERSON_ID)
   chore.save()
-
-  notification = Notification(chore_info=chore, action=Notification.ACTIONS.CHANGED.value)
+  
+  notification = Notification(chore_id=chore, household_id=chore.chore_info.linked_household, action=Notification.ACTIONS.CHANGED.value)
   notification.save()
   
   data = {
