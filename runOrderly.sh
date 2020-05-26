@@ -5,4 +5,4 @@ pip install -r ./requirements.txt
 
 cd orderly
 
-py manage.py runserver
+python manage.py runserver
