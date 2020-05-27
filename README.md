@@ -25,7 +25,7 @@ Setting up Django server for backend instructions:
 
 4. Install required packages. 
     ```
-    pip install -r ../requirements.txt 
+    pip install -r requirements.txt 
     ```   
 
 5. Run tests
