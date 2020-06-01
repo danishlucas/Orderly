@@ -16,8 +16,10 @@ def index(request):
 #            'all_users_linked': true on success, false on failure
 def change_chore_completion_status(request):
   data = json.load(request)
-  CHORE_ID = data['cid']
+  CHORE_ID = data['cid', None]
+  # CHORE_ID = 20
   COMPLETED = data['completed']
+  # COMPLETED = True
 
   chore = Chore.objects.get(cid=CHORE_ID)
 
