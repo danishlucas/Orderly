@@ -10,5 +10,5 @@
 5. Use django to create the project 
   - django-admin startproject orderly
 6. Navigate up to second level directory and run command for server
-  - cd ~/Orderly/orderly/orderly
+  - cd ~/Orderly/orderly
   - python manage.py runserver _____ 

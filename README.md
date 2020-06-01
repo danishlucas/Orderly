@@ -9,7 +9,7 @@ Setting up Django server for backend instructions:
 2. Navigate into root folder and create new virtual environment. 
         
     ```
-    cd Orderly/orderly
+    cd Orderly
     pip install virtualenv 
     virtualenv -p python3 orderlyenv
     ```
@@ -25,18 +25,18 @@ Setting up Django server for backend instructions:
 
 4. Install required packages. 
     ```
-    pip install -r ../requirements.txt 
+    pip install -r requirements.txt 
     ```   
 
 5. Run tests
     ```
-    cd Orderly/orderly/orderly
+    cd Orderly/orderly
     python manage.py test
     ``` 
 
 5. Navigate to appropriate directory and get web server running. 
     ```
-    cd Orderly/orderly/orderly
+    cd Orderly/orderly
     python manage.py runserver
     ```   
 
