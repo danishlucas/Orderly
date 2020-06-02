@@ -77,7 +77,7 @@ def change_chore_assignment(request):
 def view_household_chore_schedule(request):
   data = json.load(request)
   HOUSEHOLD_ID = data['hid']
-  schedule = Schedule.objects.get(linked_houshold__hid=HOUSEHOLD_ID)
+  schedule = Schedule.objects.get(linked_household__hid=HOUSEHOLD_ID)
   json_week_list = {"weeks" : []}
 
   # creating chores for each week 
@@ -87,8 +87,8 @@ def view_household_chore_schedule(request):
     json_chore_list = {week_num : []}
     chores = Chore.objects.filter(linked_week__wid=week.wid)
     for chore in chores: 
-      chore_info = ChoreInfo.objects.get(ciid=chore.chore_info)
-      assigned = Person.objects.get(pid=chore.assigned_to)
+      chore_info = ChoreInfo.objects.get(ciid=chore.chore_info.ciid)
+      assigned = Person.objects.get(pid=chore.assigned_to.pid)
       json_chore_list[week_num].append({"chore_name" : chore_info.name, "assigned_to" : assigned.name})
 
     first_person += 1
@@ -106,7 +106,7 @@ def view_household_chore_schedule(request):
 #   'chore_list': list of chore IDs
 def view_individual_chore_schedule(request):
   data = json.load(request)
-  PERSON_ID = data['pid', None]
+  PERSON_ID = data['pid']
 
   chore_list = []
   for chore in Chore.objects.filter(assigned_to__pid=PERSON_ID):
