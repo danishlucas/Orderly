@@ -323,14 +323,15 @@ def create_household(request):
 def get_household_users(request):
   data = json.load(request)
   HOUSEHOLD_ID = data['hid']
-  # --------------------------------
+  # # # --------------------------------
   # HOUSEHOLD_ID = 1
 
   if not Household.objects.filter(hid=HOUSEHOLD_ID).exists():
     data = {"people" : []}
     return JsonResponse(data)
   else: 
-    data = {"people" : []}
+    data = {"num_people" : 0, "people" : []}
+    num_people = 0
     target_people = Person.objects.filter(linked_household_id=HOUSEHOLD_ID)
     household_admin = Household.objects.get(hid=HOUSEHOLD_ID).admin
     for person in target_people: 
@@ -338,6 +339,8 @@ def get_household_users(request):
       is_admin = person.name == household_admin.name
       person_data = {"pid" : person.pid, "username" : person.name, "first_name" : user.first_name, "last_name" : user.last_name, "is_admin" : is_admin}
       data["people"].append(person_data)
+      num_people += 1
+    data["num_people"] = num_people
     return JsonResponse(data)
 
 
