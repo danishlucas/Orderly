@@ -14,15 +14,16 @@ def index(request):
 # use case: user wants to change completion status of a certain chore
 # JSON format: 
 #            'all_users_linked': true on success, false on failure
+#            'new_chore_status': boolean based on completed
 def change_chore_completion_status(request):
+  
   data = json.load(request)
-  CHORE_ID = data['cid', None]
+  CHORE_ID = data['cid']
   # CHORE_ID = 20
   COMPLETED = data['completed']
   # COMPLETED = True
-
   chore = Chore.objects.get(cid=CHORE_ID)
-
+  
   chore.completed = COMPLETED
   chore.save()
   linked = True
@@ -32,7 +33,8 @@ def change_chore_completion_status(request):
   
   # output = "Changed completion status of " + chore_info.name + " to " + COMPLETED
   data = {
-    'all_users_linked': linked
+    'all_users_linked': linked,
+    'new_chore_status': chore.completed
   }
   return JsonResponse(data)
   # return HttpResponse(output, content_type="text/plain")
@@ -46,22 +48,17 @@ def change_chore_completion_status(request):
 def change_chore_assignment(request):
   data = json.load(request)
   CHORE_ID = data['cid']
-  # CHORE_ID = 20
   GIVER_PERSON_ID = data['giver']
-  # GIVER_PERSON_ID = 3
   RECIEVER_PERSON_ID = data['reciever']
-  # RECIEVER_PERSON_ID = 4
 
   giver = Person.objects.get(pid=GIVER_PERSON_ID)
   chore = Chore.objects.get(cid=CHORE_ID)
   chore_info = ChoreInfo.objects.get(ciid=chore.chore_info_id)
   linked = True
-  if chore.assigned_to != GIVER_PERSON_ID:
-    # output = "Person " + giver.name + " is not assigned to chore " + chore_info.name
+  if chore.assigned_to.pid != GIVER_PERSON_ID:
     linked = False
-    # return HttpResponse(output, content_type="text/plain")
-
-  chore.assigned_to = RECIEVER_PERSON_ID
+  
+  chore.assigned_to = Person.objects.get(pid=RECIEVER_PERSON_ID)
   reciever = Person.objects.get(pid=RECIEVER_PERSON_ID)
   chore.save()
   
@@ -72,8 +69,6 @@ def change_chore_assignment(request):
     'all_users_linked': linked
   }
   return JsonResponse(data)
-  # output = "Chore " + chore_info.name + " is now assigned to " + reciever.name + " from " + giver.name
-  # return HttpResponse(output, content_type="text/plain")
 
 # parameters: hid
 # preconditions: household created and choreinfos/people been defined, chores have been assigned
