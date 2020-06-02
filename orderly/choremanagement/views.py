@@ -14,15 +14,16 @@ def index(request):
 # use case: user wants to change completion status of a certain chore
 # JSON format: 
 #            'all_users_linked': true on success, false on failure
+#            'new_chore_status': boolean based on completed
 def change_chore_completion_status(request):
+  
   data = json.load(request)
-  CHORE_ID = data['cid', None]
+  CHORE_ID = data['cid']
   # CHORE_ID = 20
   COMPLETED = data['completed']
   # COMPLETED = True
-
   chore = Chore.objects.get(cid=CHORE_ID)
-
+  
   chore.completed = COMPLETED
   chore.save()
   linked = True
@@ -32,7 +33,8 @@ def change_chore_completion_status(request):
   
   # output = "Changed completion status of " + chore_info.name + " to " + COMPLETED
   data = {
-    'all_users_linked': linked
+    'all_users_linked': linked,
+    'new_chore_status': chore.completed
   }
   return JsonResponse(data)
   # return HttpResponse(output, content_type="text/plain")
@@ -46,22 +48,17 @@ def change_chore_completion_status(request):
 def change_chore_assignment(request):
   data = json.load(request)
   CHORE_ID = data['cid']
-  # CHORE_ID = 20
   GIVER_PERSON_ID = data['giver']
-  # GIVER_PERSON_ID = 3
   RECIEVER_PERSON_ID = data['reciever']
-  # RECIEVER_PERSON_ID = 4
 
   giver = Person.objects.get(pid=GIVER_PERSON_ID)
   chore = Chore.objects.get(cid=CHORE_ID)
   chore_info = ChoreInfo.objects.get(ciid=chore.chore_info_id)
   linked = True
-  if chore.assigned_to != GIVER_PERSON_ID:
-    # output = "Person " + giver.name + " is not assigned to chore " + chore_info.name
+  if chore.assigned_to.pid != GIVER_PERSON_ID:
     linked = False
-    # return HttpResponse(output, content_type="text/plain")
-
-  chore.assigned_to = RECIEVER_PERSON_ID
+  
+  chore.assigned_to = Person.objects.get(pid=RECIEVER_PERSON_ID)
   reciever = Person.objects.get(pid=RECIEVER_PERSON_ID)
   chore.save()
   
@@ -72,38 +69,32 @@ def change_chore_assignment(request):
     'all_users_linked': linked
   }
   return JsonResponse(data)
-  # output = "Chore " + chore_info.name + " is now assigned to " + reciever.name + " from " + giver.name
-  # return HttpResponse(output, content_type="text/plain")
 
-# parameters: Household ID
+# parameters: hid
 # preconditions: household created and choreinfos/people been defined, chores have been assigned
 # postconditions: no database changes made
 # use case: to display the chore schedule for a household
 def view_household_chore_schedule(request):
   data = json.load(request)
   HOUSEHOLD_ID = data['hid']
-  # HOUSEHOLD_ID = 6
-  household = Household.objects.get(hid=HOUSEHOLD_ID)
-  schedule = Schedule.objects.get(sid=household.linked_schedule)
+  schedule = Schedule.objects.get(linked_houshold__hid=HOUSEHOLD_ID)
+  json_week_list = {"weeks" : []}
 
-  # get all weeks for this schedule
-  week_list = []
-  for week in Week.objects.filter(linked_schedule=schedule.sid):
-    week_list.append(week)
-
-  # formatting schedule 
-  household_output = "Household: " + str(HOUSEHOLD_ID) + '\n'
-  schedule_output = "Schedule: " + str(schedule.sid) + ", Linked Household = " + str(schedule.linked_household_id) + ", Number of Weeks = " + str(schedule.num_weeks) + '\n' + '\n'
-  week_output = ""
-  for week in week_list:
-    week_output += "Week: " + str(week.week_num) + ", " + "Linked Schedule = " + str(week.linked_schedule_id) + '\n'
-    chore_list = Chore.objects.filter(linked_week_id=week.wid)
-    for chore in chore_list:
+  # creating chores for each week 
+  first_person = 0
+  for week in Week.objects.filter(linked_schedule__sid=schedule.sid):
+    week_num = "week" + str(first_person)
+    json_chore_list = {week_num : []}
+    chores = Chore.objects.filter(linked_week__wid=week.wid)
+    for chore in chores: 
       chore_info = ChoreInfo.objects.get(ciid=chore.chore_info)
-      person = Person.objects.get(pid=chore.assigned_to)
-      week_output += "   " + "id = " + str(chore.cid) + ", " + chore_info.name + " --- " + person.name + '\n'
-    week_output += '\n'
-  return HttpResponse(household_output + schedule_output + week_output, content_type="text/plain")
+      assigned = Person.objects.get(pid=chore.assigned_to)
+      json_chore_list[week_num].append({"chore_name" : chore_info.name, "assigned_to" : assigned.name})
+
+    first_person += 1
+    json_week_list["weeks"].append(json_chore_list)
+
+  return JsonResponse(json_week_list)
 
 # parameters: Person ID
 # preconditions: household created and choreinfos/people been defined, chores have been assigned
@@ -118,7 +109,7 @@ def view_individual_chore_schedule(request):
   PERSON_ID = data['pid', None]
 
   chore_list = []
-  for chore in Chore.objects.filter(assigned_to=PERSON_ID):
+  for chore in Chore.objects.filter(assigned_to__pid=PERSON_ID):
     chore_list.append(chore.cid)
 
   data = {
@@ -154,9 +145,9 @@ def get_chore_info(request):
     'ciid': chore_info.ciid,
     'name': chore_info.name,
     'description': chore_info.description,
-    'assigned_to': chore.assigned_to,
+    'assigned_to': chore.assigned_to_id,
     'completed': chore.completed,
-    'hid': chore_info.linked_household,
+    'hid': chore_info.linked_household_id,
     'week_num': week.week_num
   }
   return JsonResponse(data)
