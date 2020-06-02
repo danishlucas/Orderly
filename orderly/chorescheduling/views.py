@@ -91,7 +91,7 @@ def logout_user(request):
 # postconditions: -
 # use case: get information about logged in user
 def get_active_user(request):
-  current_user = request.user 
+  current_user = request.user
   
   # checking to see if anyone actually logged in
   if current_user.username == "":
@@ -280,13 +280,12 @@ def get_week_schedule(request):
 def create_household(request):
   data = json.load(request)
   HOUSEHOLD_NAME = data['name']
+  HOUSEHOLD_CREATOR_EMAIL = data['creator']
   # --------------------------------
   # HOUSEHOLD_NAME = "The Crib"
 
-  current_user = request.user
-
   # checking to see if user logged in
-  if current_user.username == "":
+  if HOUSEHOLD_CREATOR_EMAIL == "":
     data = {
       'household_id' : "-",
       'household_name' : "-",
@@ -295,7 +294,7 @@ def create_household(request):
     }
     return JsonResponse(data)
   # checking to ensure that user not linked to another household already
-  elif Person.objects.get(name=current_user.username).linked_household is not None:
+  elif Person.objects.get(name=HOUSEHOLD_CREATOR_EMAIL).linked_household is not None:
     data = {
       'household_id' : "-",
       'household_name' : "-",
@@ -304,7 +303,7 @@ def create_household(request):
     }
     return JsonResponse(data)
   else:
-    current_person = Person.objects.get(name=current_user.username)
+    current_person = Person.objects.get(name=HOUSEHOLD_CREATOR_EMAIL)
     household = Household(household_name=HOUSEHOLD_NAME, admin=current_person)
     household.save()
     current_person.linked_household = household
