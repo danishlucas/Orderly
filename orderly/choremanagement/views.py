@@ -145,9 +145,9 @@ def get_chore_info(request):
     'ciid': chore_info.ciid,
     'name': chore_info.name,
     'description': chore_info.description,
-    'assigned_to': chore.assigned_to_id,
+    'assigned_to': chore.assigned_to.pid,
     'completed': chore.completed,
-    'hid': chore_info.linked_household_id,
+    'hid': chore_info.linked_household.hid,
     'week_num': week.week_num
   }
   return JsonResponse(data)
