@@ -138,8 +138,8 @@ def get_chore_info(request):
   data = json.load(request)
   CHORE_ID = data['cid']
   chore = Chore.objects.get(cid=CHORE_ID)
-  chore_info = ChoreInfo.objects.get(ciid=chore.chore_info)
-  week = Week.objects.get(wid=chore.linked_week)
+  chore_info = ChoreInfo.objects.get(ciid=chore.chore_info.ciid)
+  week = Week.objects.get(wid=chore.linked_week.wid)
   data = {
     'cid': CHORE_ID,
     'ciid': chore_info.ciid,
