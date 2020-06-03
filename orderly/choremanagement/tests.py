@@ -99,3 +99,24 @@ class ChoreManagementTestCase(TestCase):
       self.assertEqual(response.json(), {'all_users_linked' : False})
       tested_chore = Chore.objects.get(cid=chore.cid)
       self.assertNotEqual(other_person, tested_chore.assigned_to.pid)
+
+  def test_view_house_chore_schedule(self):
+    households = Household.objects.all()
+    for house in households:
+      response_str = {'hid' : house.hid}
+      response = self.client.post(reverse('view_household_chore_schedule'),
+                                json.dumps(response_str), content_type = "application/json")
+      self.assertEqual(response.status_code, 200)
+      self.assertEqual(len(response.json()["weeks"]),2)
+      self.assertEqual(len(response.json()["weeks"][0]["week0"]), 2)
+      self.assertEqual(len(response.json()["weeks"][1]["week1"]), 2)
+
+  def test_view_ind_chore_schedule(self):
+    people = Person.objects.all()
+    for person in people:
+      response_str = {'pid' : person.pid}
+      response = self.client.post(reverse('view_individual_chore_schedule'),
+                                json.dumps(response_str), content_type = "application/json")
+      self.assertEqual(response.status_code, 200)
+      self.assertEqual(response.json()["pid"], person.pid)
+      self.assertEqual(len(response.json()["chore_list"]), 2)
