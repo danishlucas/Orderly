@@ -106,7 +106,7 @@ def view_household_chore_schedule(request):
 #   'chore_list': list of chore IDs
 def view_individual_chore_schedule(request):
   data = json.load(request)
-  PERSON_ID = data['pid', None]
+  PERSON_ID = data['pid']
 
   chore_list = []
   for chore in Chore.objects.filter(assigned_to__pid=PERSON_ID):
@@ -138,8 +138,8 @@ def get_chore_info(request):
   data = json.load(request)
   CHORE_ID = data['cid']
   chore = Chore.objects.get(cid=CHORE_ID)
-  chore_info = ChoreInfo.objects.get(ciid=chore.chore_info)
-  week = Week.objects.get(wid=chore.linked_week)
+  chore_info = ChoreInfo.objects.get(ciid=chore.chore_info.ciid)
+  week = Week.objects.get(wid=chore.linked_week.wid)
   data = {
     'cid': CHORE_ID,
     'ciid': chore_info.ciid,
