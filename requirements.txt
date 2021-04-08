@@ -1,4 +1,4 @@
-Django==3.0.5
+Django==3.0.14
 psycopg2-binary==2.8.5
 django-cors-headers==3.2.1
 model-bakery==1.1.0
